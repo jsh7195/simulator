@@ -258,8 +258,12 @@
     </div> -->
 
     <canvas id="canvas"></canvas>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1338813848148433"
+        crossorigin="anonymous"></script>
 
     <script>
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
@@ -1789,16 +1793,16 @@
             }
         }
         function createNodeOverlays() {
-    // 기존 오버레이 제거
-    document.querySelectorAll('.node-overlay').forEach(el => el.remove());
+            // 기존 오버레이 제거
+            document.querySelectorAll('.node-overlay').forEach(el => el.remove());
 
-    const skillTreeWrapper = document.querySelector('.skill-tree-wrapper');
+            const skillTreeWrapper = document.querySelector('.skill-tree-wrapper');
 
-    nodes.forEach(node => {
-        const overlay = document.createElement('div');
-        overlay.setAttribute('data-node-id', node.id);
-        overlay.className = 'node-overlay';
-        overlay.style.cssText = `
+            nodes.forEach(node => {
+                const overlay = document.createElement('div');
+                overlay.setAttribute('data-node-id', node.id);
+                overlay.className = 'node-overlay';
+                overlay.style.cssText = `
             position: absolute;
             pointer-events: ${isDragging ? 'none' : 'auto'};
             background: transparent;
@@ -1807,76 +1811,76 @@
             transition: all 0.3s ease;
         `;
 
-        // ✅ 마우스 이벤트 완전 수정
-        overlay.addEventListener('mouseenter', (e) => {
-            // 드래그 중이면 아무것도 안함
-            if (isDragging) return;
-            
-            e.stopPropagation();
-            
-            // ✅ 툴팁 설정 (빠져있던 부분)
-            hoveredNode = node;
-            updateTooltip(e);
-            
-            // 선행 노드 하이라이트
-            if (node?.prerequisites && node.prerequisites.length > 0) {
-                handleNodeHover(node, nodes);
-            }
-        });
+                // ✅ 마우스 이벤트 완전 수정
+                overlay.addEventListener('mouseenter', (e) => {
+                    // 드래그 중이면 아무것도 안함
+                    if (isDragging) return;
 
-        overlay.addEventListener('mousemove', (e) => {
-            // 드래그 중이면 아무것도 안함
-            if (isDragging) return;
-            
-            e.stopPropagation();
-            
-            // ✅ 툴팁 위치 업데이트 (빠져있던 부분)
-            if (hoveredNode && tooltipElement && tooltipElement.style.display === 'block') {
-                tooltipElement.style.left = (e.clientX + 10) + 'px';
-                tooltipElement.style.top = (e.clientY - 10) + 'px';
-            }
-        });
+                    e.stopPropagation();
 
-        overlay.addEventListener('mouseleave', (e) => {
-            // 드래그 중이면 아무것도 안함
-            if (isDragging) return;
-            
-            e.stopPropagation();
-            
-            // ✅ 툴팁 제거 (빠져있던 부분)
-            hoveredNode = null;
-            updateTooltip();
-            
-            // 선행 노드 하이라이트 제거
-            handleNodeLeave();
-        });
+                    // ✅ 툴팁 설정 (빠져있던 부분)
+                    hoveredNode = node;
+                    updateTooltip(e);
 
-        // 클릭 이벤트 (기존과 동일하지만 stopPropagation 추가)
-        overlay.addEventListener('mousedown', (e) => {
-            e.stopPropagation();
-            
-            if (e.button === 2 || (e.shiftKey && node.currentLevel > 0)) {
-                // 우클릭 또는 Shift+클릭으로 비활성화
-                if (node.deactivate()) {
-                    // 비활성화 성공
-                } else {
-                    alert('다른 노드가 이 노드에 의존하므로 비활성화할 수 없습니다.');
-                }
-            } else if (e.button === 0) {
-                // 좌클릭으로 활성화
-                node.activate();
-            }
-            e.preventDefault();
-        });
+                    // 선행 노드 하이라이트
+                    if (node?.prerequisites && node.prerequisites.length > 0) {
+                        handleNodeHover(node, nodes);
+                    }
+                });
 
-        overlay.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        });
+                overlay.addEventListener('mousemove', (e) => {
+                    // 드래그 중이면 아무것도 안함
+                    if (isDragging) return;
 
-        skillTreeWrapper.appendChild(overlay);
-    });
-}
+                    e.stopPropagation();
+
+                    // ✅ 툴팁 위치 업데이트 (빠져있던 부분)
+                    if (hoveredNode && tooltipElement && tooltipElement.style.display === 'block') {
+                        tooltipElement.style.left = (e.clientX + 10) + 'px';
+                        tooltipElement.style.top = (e.clientY - 10) + 'px';
+                    }
+                });
+
+                overlay.addEventListener('mouseleave', (e) => {
+                    // 드래그 중이면 아무것도 안함
+                    if (isDragging) return;
+
+                    e.stopPropagation();
+
+                    // ✅ 툴팁 제거 (빠져있던 부분)
+                    hoveredNode = null;
+                    updateTooltip();
+
+                    // 선행 노드 하이라이트 제거
+                    handleNodeLeave();
+                });
+
+                // 클릭 이벤트 (기존과 동일하지만 stopPropagation 추가)
+                overlay.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+
+                    if (e.button === 2 || (e.shiftKey && node.currentLevel > 0)) {
+                        // 우클릭 또는 Shift+클릭으로 비활성화
+                        if (node.deactivate()) {
+                            // 비활성화 성공
+                        } else {
+                            alert('다른 노드가 이 노드에 의존하므로 비활성화할 수 없습니다.');
+                        }
+                    } else if (e.button === 0) {
+                        // 좌클릭으로 활성화
+                        node.activate();
+                    }
+                    e.preventDefault();
+                });
+
+                overlay.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+
+                skillTreeWrapper.appendChild(overlay);
+            });
+        }
 
         // 2. 오버레이 위치 업데이트 함수
         function updateNodeOverlayPositions() {
