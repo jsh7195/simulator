@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프라시아 전기 집행관 전승 시뮬레이터</title>
+    <!-- <og:title>프라시아 전기 집행관 전승 시뮬레이터</og:title> -->
+    <!-- <og:description>프라시아 전기 집행관 전승 시뮬레이터</og:description> -->
+    <style>
+        /* 초기 블로그 영역에서 컨트롤 패널이 벗어나지 않도록 수정 */
+
+        .skill-tree-wrapper {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f0f 70%, #000000 100%);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            color: #ffffff;
+            position: relative;
+
+            /* 최소 크기 보장 */
+            min-width: 320px;
+            min-height: 400px;
+        }
+
+        .skill-tree-wrapper .ui-panel {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00aaff;
+            border-radius: 8px;
+            padding: 10px;
+            /* 패딩 줄임 */
+            color: #ffffff;
+            font-size: 12px;
+            /* 폰트 크기 줄임 */
+            backdrop-filter: blur(5px);
+            box-sizing: border-box;
+
+            /* 핵심: 컨테이너를 절대 벗어나지 않도록 */
+            max-width: calc(100% - 20px);
+            max-height: calc(100% - 40px);
+            overflow: auto;
+            /* 내용이 넘치면 스크롤 */
+        }
+
+        .skill-tree-wrapper .controls-panel {
+            top: 10px;
+            left: 10px;
+
+            /* 컨테이너 크기에 따라 자동 조정 */
+            width: auto;
+            max-width: calc(100% - 20px);
+        }
+
+        .skill-tree-wrapper .points-panel {
+            bottom: 10px;
+            left: 10px;
+
+            /* 컨테이너 크기에 따라 자동 조정 */
+            width: auto;
+            max-width: calc(100% - 20px);
+        }
+
+        /* 버튼 크기도 작게 조정 */
+        .skill-tree-wrapper button {
+            background: linear-gradient(45deg, #003366, #006699);
+            border: 1px solid #00aaff;
+            color: white;
+            padding: 6px 10px;
+            /* 패딩 줄임 */
+            margin: 2px;
+            /* 마진 줄임 */
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            /* 폰트 크기 줄임 */
+            font-family: inherit;
+            transition: all 0.3s;
+            white-space: nowrap;
+            /* 버튼 텍스트 줄바꿈 방지 */
+        }
+
+        /* 입력 필드도 작게 */
+        .skill-tree-wrapper input[type="number"] {
+            background: rgba(0, 50, 100, 0.3);
+            border: 1px solid #00aaff;
+            color: #ffffff;
+            padding: 4px 6px;
+            /* 패딩 줄임 */
+            border-radius: 3px;
+            width: 60px;
+            /* 너비 줄임 */
+            font-family: inherit;
+            font-size: 11px;
+            /* 폰트 크기 줄임 */
+        }
+
+        /* 컨트롤 패널 내용 조정 */
+        .skill-tree-wrapper .input-group {
+            margin: 5px 0;
+            /* 마진 줄임 */
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            /* 간격 줄임 */
+            flex-wrap: wrap;
+            /* 공간이 부족하면 줄바꿈 */
+        }
+
+        /* 제목 텍스트 크기 조정 */
+        .skill-tree-wrapper .ui-panel>div:first-child {
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        /* 아주 작은 화면에서의 대응 */
+        @media (max-width: 400px) {
+            .skill-tree-wrapper .ui-panel {
+                padding: 8px;
+                font-size: 10px;
+            }
+
+            .skill-tree-wrapper button {
+                padding: 4px 6px;
+                font-size: 9px;
+                margin: 1px;
+            }
+
+            .skill-tree-wrapper input[type="number"] {
+                width: 45px;
+                padding: 3px 4px;
+                font-size: 10px;
+            }
+
+            .skill-tree-wrapper .controls-panel,
+            .skill-tree-wrapper .points-panel {
+                left: 5px;
+                max-width: calc(100% - 10px);
+            }
+
+            .skill-tree-wrapper .controls-panel {
+                top: 5px;
+            }
+
+            .skill-tree-wrapper .points-panel {
+                bottom: 5px;
+            }
+        }
+
+        /* 작은 컨테이너 크기에 대한 추가 대응 */
+        .skill-tree-wrapper {
+            container-type: inline-size;
+        }
+
+        @container (max-width: 500px) {
+            .skill-tree-wrapper .ui-panel {
+                padding: 8px;
+                font-size: 11px;
+            }
+
+            .skill-tree-wrapper button {
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+        }
+
+        /* 컨트롤 패널들이 겹치지 않도록 조정 */
+        .skill-tree-wrapper .controls-panel {
+            z-index: 11;
+        }
+
+        .skill-tree-wrapper .points-panel {
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<div class="skill-tree-wrapper">
+    <div class="ui-panel controls-panel">
+        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px;">🎮 컨트롤</div>
+        <!-- <button onclick="toggleCoordinateMode()">📍 좌표 수집 모드</button>
+        <button onclick="toggleConnectionMode()">🔗 연결 모드</button> -->
+        <button onclick="resetSkillTree()">🔄 리셋</button>
+        <button onclick="fullSize()">크게보기</button>
+        <!-- <button onclick="saveToFile()">💾 저장</button>
+        <button onclick="loadFromFile()">📁 불러오기</button> -->
+        <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileLoad(event)">
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageLoad(event)">
+        <!-- <button onclick="loadImage()">🖼️ 이미지 불러오기</button> -->
+    </div>
+
+    <div class="ui-panel points-panel">
+        <div style="color: #ffaa00; font-weight: bold; margin-bottom: 10px;">💎 포인트</div>
+        <div class="input-group">
+            <label>사용 가능:</label>
+            <input type="number" id="pointsInput" value="50" min="0" max="999" onchange="updatePoints()">
+            <button onclick="addPoints(10)">+10</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <div>사용됨: <span id="usedPoints" class="status-text">0</span></div>
+            <div>총 포인트: <span id="totalPoints" class="status-text">50</span></div>
+        </div>
+    </div>
+
+    <!-- 연결 모드 패널 -->
+    <!-- <div id="connectionPanel" class="ui-panel" style="top: 20px; left: 500px; display: none;">
+        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px;">🔗 연결 모드</div>
+        <div style="margin-bottom: 10px;">
+            <span style="color: #ffaa00;">상태:</span>
+            <span id="connectionStatus" style="color: #ff6666;">비활성</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <span style="color: #ffaa00;">선택된 노드:</span>
+            <span id="selectedNode" style="color: #00ff88;">없음</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <input type="checkbox" id="bidirectionalCheck" checked>
+            <label for="bidirectionalCheck" style="margin-left: 5px;">양방향 연결</label>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <div>총 연결: <span id="connectionCount" style="color: #00ff88;">0</span>개</div>
+        </div>
+        <button onclick="exportConnections()">📋 연결 코드 복사</button>
+        <button onclick="clearAllConnections()">🗑️ 모든 연결 삭제</button>
+
+        <div id="connectionList"
+            style="max-height: 200px; overflow-y: auto; margin-top: 10px; font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 3px;">
+        </div>
+    </div> -->
+    <!-- 좌표 수집 패널 -->
+    <!-- <div id="coordinatePanel" class="ui-panel" style="top: 20px; left: 300px; display: none;">
+        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px;">📍 좌표 수집기</div>
+        <div style="margin-bottom: 10px;">
+            <span style="color: #ffaa00;">모드:</span>
+            <span id="modeStatus" style="color: #ff6666;">비활성</span>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <label>노드 타입:</label>
+            <select id="nodeTypeSelect"
+                style="background: rgba(0,50,100,0.3); border: 1px solid #00aaff; color: white; padding: 4px;">
+                <option value="small">Small</option>
+                <option value="notable">Notable</option>
+                <option value="keystone">Keystone</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 10px;">
+            <div>수집된 좌표: <span id="coordinateCount" style="color: #00ff88;">0</span>개</div>
+        </div>
+        <button onclick="exportCoordinates()">📋 좌표 복사</button>
+        <button onclick="clearCoordinates()">🗑️ 초기화</button>
+        <button onclick="generateNodes()">⚡ 노드 생성</button>
+
+        <div id="coordinateList"
+            style="max-height: 200px; overflow-y: auto; margin-top: 10px; font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 3px;">
+        </div>
+    </div> -->
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // 캔버스 크기 설정
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 게임 상태
+        let availablePoints = 50;
+        let usedPoints = 0;
+        let camera = { x: 0, y: 0, zoom: 1.2 };
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+
+        // 좌표 수집 모드
+        let coordinateMode = false;
+        let collectedCoordinates = [];
+        let backgroundImage = null;
+        let imageLoaded = false;
+
+        // 연결 모드
+        let connectionMode = false;
+        let selectedNode = null;
+        let allConnections = [];
+
+        // 키보드 이동
+        const keys = {};
+        window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+        function handleKeyboardMovement() {
+            const speed = 3 / camera.zoom;
+            if (keys['KeyW'] || keys['ArrowUp']) camera.y += speed;
+            if (keys['KeyS'] || keys['ArrowDown']) camera.y -= speed;
+            if (keys['KeyA'] || keys['ArrowLeft']) camera.x += speed;
+            if (keys['KeyD'] || keys['ArrowRight']) camera.x -= speed;
+        }
+
+        // 노드 클래스
+        class SkillNode {
+            constructor(x, y, id, type = 'small', maxLevel = 1, prerequisites = [], name = '') {
+                this.x = x;
+                this.y = y;
+                this.id = id;
+                this.type = type; // 'small', 'notable', 'keystone'
+                this.currentLevel = 0;
+                this.maxLevel = maxLevel;
+                this.connections = [];
+                this.prerequisites = prerequisites;
+                this.radius = this.getRadius();
+                this.name = name;
+            }
+
+            getRadius() {
+                switch (this.type) {
+                    case 'small': return 38;
+                    case 'notable': return 44;
+                    case 'keystone': return 80;
+                    default: return 38;
+                }
+            }
+
+            addConnection(nodeId) {
+                if (!this.connections.includes(nodeId)) {
+                    this.connections.push(nodeId);
+                }
+            }
+
+            addPrerequisite(nodeId) {
+                if (!this.prerequisites.includes(nodeId)) {
+                    this.prerequisites.push(nodeId);
+                }
+            }
+
+            canActivate() {
+                // 1. 현재 노드가 이미 최대 레벨이면 비활성화
+                if (this.currentLevel >= this.maxLevel) return false;
+
+                // 2. 가용 포인트가 없으면 비활성화
+                if (availablePoints <= 0) return false;
+
+                // 3. node_5는 항상 활성화 가능
+                if (this.id === 'node_5') return true;
+
+                // 4. node_5가 최대 레벨이 아니면 나머지 노드는 비활성화
+                const node5 = nodes.find(n => n.id === 'node_5');
+                if (!node5 || node5.currentLevel < node5.maxLevel) return false;
+
+                // 5. 전제조건이 없는 경우: 시작 노드가 아니면 비활성화
+                if (this.prerequisites.length === 0) {
+                    return false;
+                }
+
+                // 6. 모든 전제 조건이 maxLevel이어야 활성화 가능
+                return this.prerequisites.every(prereqId => {
+
+                    const prereqNode = nodes.find(n => n.id === prereqId);
+
+                    return prereqNode && prereqNode.currentLevel >= prereqNode.maxLevel;
+                });
+            }
+
+            activate() {
+                if (this.canActivate()) {
+                    this.currentLevel++;
+                    availablePoints--;
+                    usedPoints++;
+                    updateUI();
+                    saveToLocalStorage();
+                    return true;
+                }
+                return false;
+            }
+
+            deactivate() {
+                if (this.currentLevel <= 0) return false;
+
+                // 다른 노드의 전제조건이 되는지 확인
+                const dependentNodes = nodes.filter(node =>
+                    node.prerequisites.includes(this.id) && node.currentLevel > 0
+                );
+
+                if (dependentNodes.length > 0) {
+                    return false; // 종속 노드가 있으면 비활성화 불가
+                }
+
+                this.currentLevel--;
+                availablePoints++;
+                usedPoints--;
+                updateUI();
+                saveToLocalStorage();
+                return true;
+            }
+
+            getScreenPosition() {
+                return {
+                    x: (this.x + camera.x) * camera.zoom + canvas.width / 2,
+                    y: (this.y + camera.y) * camera.zoom + canvas.height / 2
+                };
+            }
+
+            isPointInside(screenX, screenY) {
+                const pos = this.getScreenPosition();
+                const distance = Math.sqrt(
+                    Math.pow(screenX - pos.x, 2) + Math.pow(screenY - pos.y, 2)
+                );
+                return distance <= this.radius * camera.zoom;
+            }
+
+            draw() {
+                const pos = this.getScreenPosition();
+                const scaledRadius = this.radius * camera.zoom;
+
+                // 상태에 따른 색상 결정
+                let fillColor, strokeColor, glowColor;
+                const isActive = this.currentLevel > 0;
+                const canLevel = this.canActivate();
+
+                if (isActive) {
+                    fillColor = '#00ff88';
+                    strokeColor = '#ffffff';
+                    glowColor = '#00ff88';
+                } else if (canLevel) {
+                    fillColor = '#003366';
+                    strokeColor = '#00aaff';
+                    glowColor = '#00aaff';
+                } else {
+                    fillColor = '#1a1a1a';
+                    strokeColor = '#666666';
+                    glowColor = null;
+                }
+
+                // 글로우 효과
+                if (glowColor) {
+                    ctx.shadowColor = glowColor;
+                    ctx.shadowBlur = canLevel ? 10 : 6;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+
+                // 노드 타입에 따른 모양 그리기
+                if (this.type === 'keystone') {
+                    // 키스톤: 원형
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, scaledRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = fillColor;
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = strokeColor;
+                    ctx.stroke();
+
+                    // 내부 원
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, scaledRadius - 4, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#ffaa00';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                } else {
+                    // 일반 노드: 육각형
+                    ctx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const angle = (Math.PI / 3) * i;
+                        const x = pos.x + Math.cos(angle) * scaledRadius;
+                        const y = pos.y + Math.sin(angle) * scaledRadius;
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                    ctx.fillStyle = fillColor;
+                    ctx.fill();
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = strokeColor;
+                    ctx.stroke();
+                }
+
+                ctx.shadowBlur = 0;
+
+                // 레벨 표시 (maxLevel > 1인 경우만)
+                if (this.maxLevel > 0) {
+                    ctx.fillStyle = isActive ? '#000000' : '#ffffff';
+                    ctx.font = `${Math.min(30, scaledRadius * 5)}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`${this.currentLevel}/${this.maxLevel}`, pos.x, pos.y);
+                    ctx.fillText(`${this.name}`, pos.x, pos.y - 30);
+                }
+            }
+        }
+
+        // 연결선 그리기
+        function drawConnection(fromNode, toNode) {
+            const fromPos = fromNode.getScreenPosition();
+            const toPos = toNode.getScreenPosition();
+
+            // 연결선 활성화 조건
+            const isActive = fromNode.currentLevel > 0 || toNode.currentLevel > 0 || toNode.canActivate();
+
+            ctx.beginPath();
+            ctx.moveTo(fromPos.x, fromPos.y);
+            ctx.lineTo(toPos.x, toPos.y);
+
+            if (isActive) {
+                ctx.shadowColor = '#00aaff';
+                ctx.shadowBlur = 6;
+                ctx.strokeStyle = '#00aaff';
+                ctx.lineWidth = 2;
+            } else {
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 1;
+            }
+
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // 노드 배열 (여기에 43개 노드를 추가하세요)
+        const nodes = [];
+
+        // 샘플 노드 - 이 형식으로 43개 노드를 생성하세요
+        // new SkillNode(x좌표, y좌표, 'node_id', '노드타입', 최대레벨)
+        // 노드타입: 'small', 'notable', 'keystone'
+        // ----------------node info--------------------
+        // nodes.push(new SkillNode(-960, -95, 'node_1', 'notable', 1, ['node_5']));
+        // nodes.push(new SkillNode(-803, -271, 'node_2', 'notable', 1, ['node_5']));
+        // nodes.push(new SkillNode(-554, -406, 'node_3', 'notable', 1, ['node_5']));
+        // nodes.push(new SkillNode(-709, 15, 'node_4', 'notable', 1, ['node_5']));
+        // nodes.push(new SkillNode(-552, -165, 'node_5', 'keystone', 5));
+        // nodes.push(new SkillNode(-381, -310, 'node_6', 'small', 5, ['node_5']));
+        // nodes.push(new SkillNode(-328, -184, 'node_7', 'small', 5, ['node_5']));
+        // nodes.push(new SkillNode(-343, -448, 'node_8', 'notable', 1, ['node_6']));
+        // nodes.push(new SkillNode(-413, -74, 'node_9', 'notable', 1, ['node_7']));
+        // nodes.push(new SkillNode(-333, -9, 'node_10', 'notable', 1, ['node_9']));
+        // nodes.push(new SkillNode(-145, -149, 'node_11', 'notable', 1, ['node_37','node_33']));
+
+        nodes.push(new SkillNode(-960, -95, 'node_1', 'notable', 1, [], '방어막'));
+        nodes.push(new SkillNode(-803, -271, 'node_2', 'notable', 1, [], '점화'));
+        nodes.push(new SkillNode(-554, -406, 'node_3', 'notable', 1, [], '방어막 파괴'));
+        nodes.push(new SkillNode(-709, 15, 'node_4', 'notable', 1, [], '무효화'));
+        nodes.push(new SkillNode(-552, -165, 'node_5', 'keystone', 5));
+        nodes.push(new SkillNode(-381, -310, 'node_6', 'small', 5));
+        nodes.push(new SkillNode(-328, -184, 'node_7', 'small', 5));
+        nodes.push(new SkillNode(-343, -448, 'node_8', 'notable', 1));
+        nodes.push(new SkillNode(-413, -74, 'node_9', 'notable', 1, [], '돌진'));
+        nodes.push(new SkillNode(-333, -9, 'node_10', 'notable', 1, [], '유틸 슬롯'));
+        nodes.push(new SkillNode(-145, -149, 'node_11', 'notable', 1, [], '신의방패'));
+        nodes.push(new SkillNode(-62, -401, 'node_12', 'notable', 1, [], '카데나'));
+        nodes.push(new SkillNode(193, -372, 'node_13', 'notable', 1, [], '공격오라'));
+        nodes.push(new SkillNode(38, -669, 'node_14', 'notable', 1));
+        nodes.push(new SkillNode(154, -594, 'node_15', 'notable', 3));
+        nodes.push(new SkillNode(31, -831, 'node_16', 'notable', 1));
+        nodes.push(new SkillNode(273, -829, 'node_17', 'notable', 1));
+        nodes.push(new SkillNode(395, -742, 'node_18', 'notable', 1));
+        nodes.push(new SkillNode(591, -230, 'node_19', 'notable', 1, [], '참회의 도끼'));
+        nodes.push(new SkillNode(296, 85, 'node_20', 'notable', 1, [], '징벌의 도약'));
+        nodes.push(new SkillNode(179, 132, 'node_21', 'notable', 3, [], '수호특성'));
+        nodes.push(new SkillNode(128, -179, 'node_22', 'notable', 1, [], '사슬속박'));
+        nodes.push(new SkillNode(-137, 238, 'node_23', 'notable', 1));
+        nodes.push(new SkillNode(-490, 331, 'node_24', 'notable', 1));
+        nodes.push(new SkillNode(-234, 558, 'node_25', 'notable', 1));
+        nodes.push(new SkillNode(-14, 513, 'node_26', 'notable', 1));
+        nodes.push(new SkillNode(716, 52, 'node_27', 'keystone', 3));
+        nodes.push(new SkillNode(489, -944, 'node_28', 'keystone', 5));
+        nodes.push(new SkillNode(3, 698, 'node_29', 'keystone', 5));
+        nodes.push(new SkillNode(-318, 264, 'node_30', 'small', 5));
+        nodes.push(new SkillNode(-234, 127, 'node_31', 'small', 5));
+        nodes.push(new SkillNode(-44, 69, 'node_32', 'small', 5));
+        nodes.push(new SkillNode(-173, -59, 'node_33', 'small', 5));
+        nodes.push(new SkillNode(3, -50, 'node_34', 'small', 5, [], '기절적중'));
+        nodes.push(new SkillNode(202, -44, 'node_35', 'small', 5));
+        nodes.push(new SkillNode(268, -192, 'node_36', 'small', 5));
+        nodes.push(new SkillNode(-32, -232, 'node_37', 'small', 5));
+        nodes.push(new SkillNode(-212, -530, 'node_38', 'small', 5));
+        nodes.push(new SkillNode(17, -481, 'node_39', 'small', 5));
+        nodes.push(new SkillNode(-91, -737, 'node_40', 'small', 5));
+        nodes.push(new SkillNode(270, -671, 'node_41', 'small', 5));
+        nodes.push(new SkillNode(157, -894, 'node_42', 'small', 5));
+        nodes.push(new SkillNode(425, -346, 'node_43', 'small', 5));
+        nodes.push(new SkillNode(-268, 421, 'node_44', 'small', 5));
+        nodes.push(new SkillNode(-91, 389, 'node_45', 'small', 5));
+        nodes.push(new SkillNode(-3, 279, 'node_46', 'small', 5));
+
+
+
+        // ------------------------------------
+
+        // 연결 관계 설정 함수 (노드 추가 후 연결 설정)
+        function setupConnections() {
+
+            // 먼저 모든 노드의 연결과 전제조건을 초기화
+            nodes.forEach(node => {
+                node.connections = [];
+                node.prerequisites = [];
+            });
+            nodes.find(n => n.id === 'node_5').addConnection('node_1');
+            nodes.find(n => n.id === 'node_1').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_5').addConnection('node_2');
+            nodes.find(n => n.id === 'node_2').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_5').addConnection('node_3');
+            nodes.find(n => n.id === 'node_3').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_5').addConnection('node_4');
+            nodes.find(n => n.id === 'node_4').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_5').addConnection('node_4');
+            nodes.find(n => n.id === 'node_4').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_5').addConnection('node_6');
+            nodes.find(n => n.id === 'node_6').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_5').addConnection('node_7');
+            nodes.find(n => n.id === 'node_7').addPrerequisite('node_5');
+
+            nodes.find(n => n.id === 'node_7').addConnection('node_9');
+            nodes.find(n => n.id === 'node_9').addPrerequisite('node_7');
+
+            nodes.find(n => n.id === 'node_9').addConnection('node_10');
+            nodes.find(n => n.id === 'node_10').addPrerequisite('node_9');
+
+            nodes.find(n => n.id === 'node_10').addConnection('node_33');
+            nodes.find(n => n.id === 'node_33').addPrerequisite('node_10');
+
+            nodes.find(n => n.id === 'node_33').addConnection('node_31');
+            nodes.find(n => n.id === 'node_31').addPrerequisite('node_33');
+
+            nodes.find(n => n.id === 'node_33').addConnection('node_11');
+            nodes.find(n => n.id === 'node_11').addPrerequisite('node_33');
+
+
+            nodes.find(n => n.id === 'node_31').addConnection('node_30');
+            nodes.find(n => n.id === 'node_30').addPrerequisite('node_31');
+
+            nodes.find(n => n.id === 'node_30').addConnection('node_24');
+            nodes.find(n => n.id === 'node_24').addPrerequisite('node_30');
+
+            nodes.find(n => n.id === 'node_24').addConnection('node_44');
+            nodes.find(n => n.id === 'node_44').addPrerequisite('node_24');
+
+            nodes.find(n => n.id === 'node_6').addConnection('node_8');
+            nodes.find(n => n.id === 'node_8').addPrerequisite('node_6');
+
+            nodes.find(n => n.id === 'node_8').addConnection('node_38');
+            nodes.find(n => n.id === 'node_38').addPrerequisite('node_8');
+
+            nodes.find(n => n.id === 'node_38').addConnection('node_12');
+            nodes.find(n => n.id === 'node_12').addPrerequisite('node_38');
+
+            nodes.find(n => n.id === 'node_12').addConnection('node_37');
+            nodes.find(n => n.id === 'node_37').addPrerequisite('node_12');
+
+            // nodes.find(n => n.id === 'node_37').addConnection('node_12');
+            // nodes.find(n => n.id === 'node_12').addPrerequisite('node_37');
+
+            nodes.find(n => n.id === 'node_37').addConnection('node_11');
+            nodes.find(n => n.id === 'node_11').addPrerequisite('node_37');
+
+
+            nodes.find(n => n.id === 'node_44').addConnection('node_25');
+            nodes.find(n => n.id === 'node_25').addPrerequisite('node_44');
+
+            nodes.find(n => n.id === 'node_25').addConnection('node_29');
+            nodes.find(n => n.id === 'node_29').addPrerequisite('node_25');
+
+            nodes.find(n => n.id === 'node_31').addConnection('node_23');
+            nodes.find(n => n.id === 'node_23').addPrerequisite('node_31');
+
+            nodes.find(n => n.id === 'node_23').addConnection('node_46');
+            nodes.find(n => n.id === 'node_46').addPrerequisite('node_23');
+
+            nodes.find(n => n.id === 'node_46').addConnection('node_45');
+            nodes.find(n => n.id === 'node_45').addPrerequisite('node_46');
+
+            nodes.find(n => n.id === 'node_45').addConnection('node_26');
+            nodes.find(n => n.id === 'node_26').addPrerequisite('node_45');
+
+            nodes.find(n => n.id === 'node_26').addConnection('node_29');
+            nodes.find(n => n.id === 'node_29').addPrerequisite('node_26');
+
+            nodes.find(n => n.id === 'node_31').addConnection('node_32');
+            nodes.find(n => n.id === 'node_32').addPrerequisite('node_31');
+
+            nodes.find(n => n.id === 'node_23').addConnection('node_21');
+            nodes.find(n => n.id === 'node_21').addPrerequisite('node_23');
+
+
+            nodes.find(n => n.id === 'node_32').addConnection('node_21');
+            nodes.find(n => n.id === 'node_21').addPrerequisite('node_32');
+
+            nodes.find(n => n.id === 'node_37').addConnection('node_22');
+            nodes.find(n => n.id === 'node_22').addPrerequisite('node_37');
+
+            nodes.find(n => n.id === 'node_22').addConnection('node_34');
+            nodes.find(n => n.id === 'node_34').addPrerequisite('node_22');
+
+
+            nodes.find(n => n.id === 'node_34').addConnection('node_21');
+            nodes.find(n => n.id === 'node_34').addPrerequisite('node_21');
+
+
+            nodes.find(n => n.id === 'node_34').addConnection('node_20');
+            nodes.find(n => n.id === 'node_20').addPrerequisite('node_34');
+
+            nodes.find(n => n.id === 'node_22').addConnection('node_35');
+            nodes.find(n => n.id === 'node_35').addPrerequisite('node_22');
+
+            nodes.find(n => n.id === 'node_22').addConnection('node_36');
+            nodes.find(n => n.id === 'node_36').addPrerequisite('node_22');
+
+            nodes.find(n => n.id === 'node_35').addConnection('node_27');
+            nodes.find(n => n.id === 'node_27').addPrerequisite('node_35');
+
+            nodes.find(n => n.id === 'node_36').addConnection('node_27');
+            nodes.find(n => n.id === 'node_27').addPrerequisite('node_36');
+
+            nodes.find(n => n.id === 'node_19').addConnection('node_27');
+            nodes.find(n => n.id === 'node_27').addPrerequisite('node_19');
+
+            nodes.find(n => n.id === 'node_43').addConnection('node_19');
+            nodes.find(n => n.id === 'node_19').addPrerequisite('node_43');
+
+            nodes.find(n => n.id === 'node_13').addConnection('node_43');
+            nodes.find(n => n.id === 'node_43').addPrerequisite('node_13');
+
+            nodes.find(n => n.id === 'node_38').addConnection('node_40');
+            nodes.find(n => n.id === 'node_40').addPrerequisite('node_38');
+
+            nodes.find(n => n.id === 'node_40').addConnection('node_39');
+            nodes.find(n => n.id === 'node_39').addPrerequisite('node_40');
+
+            nodes.find(n => n.id === 'node_39').addConnection('node_13');
+            nodes.find(n => n.id === 'node_13').addPrerequisite('node_39');
+
+            nodes.find(n => n.id === 'node_40').addConnection('node_14');
+            nodes.find(n => n.id === 'node_14').addPrerequisite('node_40');
+
+            nodes.find(n => n.id === 'node_14').addConnection('node_15');
+            nodes.find(n => n.id === 'node_15').addPrerequisite('node_14');
+
+            nodes.find(n => n.id === 'node_14').addConnection('node_13');
+            nodes.find(n => n.id === 'node_13').addPrerequisite('node_14');
+
+            nodes.find(n => n.id === 'node_40').addConnection('node_16');
+            nodes.find(n => n.id === 'node_16').addPrerequisite('node_40');
+
+            nodes.find(n => n.id === 'node_16').addConnection('node_42');
+            nodes.find(n => n.id === 'node_42').addPrerequisite('node_16');
+
+            nodes.find(n => n.id === 'node_42').addConnection('node_17');
+            nodes.find(n => n.id === 'node_17').addPrerequisite('node_42');
+
+            nodes.find(n => n.id === 'node_17').addConnection('node_28');
+            nodes.find(n => n.id === 'node_28').addPrerequisite('node_17');
+
+            nodes.find(n => n.id === 'node_18').addConnection('node_28');
+            nodes.find(n => n.id === 'node_28').addPrerequisite('node_18');
+
+            nodes.find(n => n.id === 'node_41').addConnection('node_18');
+            nodes.find(n => n.id === 'node_18').addPrerequisite('node_41');
+
+            nodes.find(n => n.id === 'node_15').addConnection('node_41');
+            nodes.find(n => n.id === 'node_41').addPrerequisite('node_15');
+
+            nodes.find(n => n.id === 'node_20').addConnection('node_27');
+            nodes.find(n => n.id === 'node_27').addPrerequisite('node_20');
+        }
+
+        setupConnections();
+
+        // 툴팁 관련 변수 추가
+        let hoveredNode = null;
+        let tooltipElement = null;
+
+        // 툴팁 엘리먼트 생성 함수
+        function createTooltip() {
+            if (!tooltipElement) {
+                tooltipElement = document.createElement('div');
+                tooltipElement.style.cssText = `
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00aaff;
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: #ffffff;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+        `;
+                document.body.appendChild(tooltipElement);
+            }
+        }
+
+        // 마우스 이벤트에 호버 감지 추가
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 노드 호버 감지
+            const newHoveredNode = nodes.find(node => node.isPointInside(x, y));
+
+            if (newHoveredNode !== hoveredNode) {
+                hoveredNode = newHoveredNode;
+                updateTooltip(e);
+            }
+
+            // 툴팁 위치 업데이트 (호버된 노드가 있을 때)
+            if (hoveredNode && tooltipElement) {
+                tooltipElement.style.left = (e.clientX + 10) + 'px';
+                tooltipElement.style.top = (e.clientY - 10) + 'px';
+            }
+
+            // 기존 드래그 로직 (좌표 수집 모드나 연결 모드에서는 드래그 비활성화)
+            if (coordinateMode || connectionMode) return;
+
+            if (isDragging) {
+                const deltaX = (e.clientX - dragStart.x) / camera.zoom;
+                const deltaY = (e.clientY - dragStart.y) / camera.zoom;
+
+                camera.x += deltaX;
+                camera.y += deltaY;
+
+                dragStart = { x: e.clientX, y: e.clientY };
+            }
+            if (hoveredNode?.prerequisites) {
+                // 전체 노드 정보들 nodes
+                handleNodeHover(hoveredNode, nodes);
+            }
+
+
+        });
+
+        // 마우스가 캔버스를 벗어날 때 툴팁 숨기기
+        canvas.addEventListener('mouseleave', () => {
+            hoveredNode = null;
+            updateTooltip();
+            handleNodeLeave()
+        });
+
+        // 툴팁 업데이트 함수
+        function updateTooltip(event = null) {
+            createTooltip();
+
+            if (hoveredNode && event) {
+                console.log('hoveredNode : ', hoveredNode)
+                const nodeTypeText = hoveredNode.type.charAt(0).toUpperCase() + hoveredNode.type.slice(1);
+                const levelText = `${hoveredNode.currentLevel}/${hoveredNode.maxLevel}`;
+                const name = hoveredNode.name ?? ''
+                tooltipElement.innerHTML = `
+            <div style="color: #00aaff; font-weight: bold; font-size: 20px">${name}</div>
+            <div style="color: #00ff88; font-size: 20px">레벨: ${levelText}</div>
+        `;
+
+                tooltipElement.style.display = 'block';
+                tooltipElement.style.left = (event.clientX + 10) + 'px';
+                tooltipElement.style.top = (event.clientY - 10) + 'px';
+            } else {
+                tooltipElement.style.display = 'none';
+            }
+        }
+
+        // 페이지 로드 시 툴팁 생성
+        window.addEventListener('DOMContentLoaded', createTooltip);
+
+        // 마우스 이벤트
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 좌표 수집 모드인 경우
+            if (coordinateMode) {
+                collectCoordinate(x, y);
+                return;
+            }
+
+            // 연결 모드인 경우
+            if (connectionMode) {
+                handleConnectionClick(x, y);
+                return;
+            }
+
+            const clickedNode = nodes.find(node => node.isPointInside(x, y));
+            if (clickedNode) {
+                if (e.button === 2 || (e.shiftKey && clickedNode.currentLevel > 0)) {
+                    // 우클릭(e.button === 2) 또는 Shift+클릭으로 비활성화
+                    if (clickedNode.deactivate()) {
+                        // 비활성화 성공
+                    } else {
+                        alert('다른 노드가 이 노드에 의존하므로 비활성화할 수 없습니다.');
+                    }
+                } else if (e.button === 0) {
+                    // 좌클릭(e.button === 0)으로 활성화
+                    clickedNode.activate();
+                }
+                return;
+            }
+
+            // 드래그는 좌클릭일 때만
+            if (e.button === 0) {
+                isDragging = true;
+                dragStart = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            // 좌표 수집 모드나 연결 모드에서는 드래그 비활성화
+            if (coordinateMode || connectionMode) return;
+
+            if (isDragging) {
+                const deltaX = (e.clientX - dragStart.x) / camera.zoom;
+                const deltaY = (e.clientY - dragStart.y) / camera.zoom;
+
+                camera.x += deltaX;
+                camera.y += deltaY;
+
+                dragStart = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        // 우클릭 메뉴 방지 - 여러 방법으로 확실히 막기
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            // 좌표 수집 모드나 연결 모드에서는 줌 비활성화
+            if (coordinateMode || connectionMode) return;
+
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            camera.zoom = Math.max(0.3, Math.min(3, camera.zoom * zoomFactor));
+        });
+
+        // 좌표 수집 기능들
+        function toggleCoordinateMode() {
+            coordinateMode = !coordinateMode;
+            const panel = document.getElementById('coordinatePanel');
+            const status = document.getElementById('modeStatus');
+
+            if (coordinateMode) {
+                panel.style.display = 'block';
+                status.textContent = '활성 (클릭하여 좌표 수집)';
+                status.style.color = '#00ff88';
+                canvas.style.cursor = 'crosshair';
+            } else {
+                panel.style.display = 'none';
+                status.textContent = '비활성';
+                status.style.color = '#ff6666';
+                canvas.style.cursor = 'grab';
+            }
+        }
+
+        function collectCoordinate(screenX, screenY) {
+            // 스크린 좌표를 월드 좌표로 변환
+            const worldX = Math.round((screenX - canvas.width / 2) / camera.zoom - camera.x);
+            const worldY = Math.round((screenY - canvas.height / 2) / camera.zoom - camera.y);
+
+            const nodeType = document.getElementById('nodeTypeSelect').value;
+            const nodeId = `node_${collectedCoordinates.length + 1}`;
+
+            const coordinate = {
+                id: nodeId,
+                x: worldX,
+                y: worldY,
+                type: nodeType,
+                screenX: screenX,
+                screenY: screenY
+            };
+
+            collectedCoordinates.push(coordinate);
+            updateCoordinateDisplay();
+        }
+
+        function updateCoordinateDisplay() {
+            document.getElementById('coordinateCount').textContent = collectedCoordinates.length;
+
+            const list = document.getElementById('coordinateList');
+            list.innerHTML = collectedCoordinates.map((coord, index) =>
+                `<div style="margin: 2px 0; color: #cccccc;">
+                    ${index + 1}. ${coord.id}: (${coord.x}, ${coord.y}) [${coord.type}]
+                    <button onclick="removeCoordinate(${index})" style="margin-left: 5px; padding: 1px 5px; font-size: 10px; background: #ff4444; border: none; color: white; border-radius: 2px; cursor: pointer;">✖</button>
+                </div>`
+            ).join('');
+        }
+
+        function removeCoordinate(index) {
+            collectedCoordinates.splice(index, 1);
+            // ID 재정렬
+            collectedCoordinates.forEach((coord, i) => {
+                coord.id = `node_${i + 1}`;
+            });
+            updateCoordinateDisplay();
+        }
+
+        function clearCoordinates() {
+            if (confirm('모든 수집된 좌표를 삭제하시겠습니까?')) {
+                collectedCoordinates = [];
+                updateCoordinateDisplay();
+            }
+        }
+
+        function exportCoordinates() {
+            if (collectedCoordinates.length === 0) {
+                alert('수집된 좌표가 없습니다.');
+                return;
+            }
+
+            const code = collectedCoordinates.map(coord =>
+                `nodes.push(new SkillNode(${coord.x}, ${coord.y}, '${coord.id}', '${coord.type}', 1));`
+            ).join('\n');
+
+            // 클립보드 복사 시도
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert(`${collectedCoordinates.length}개 노드 코드가 클립보드에 복사되었습니다!`);
+                }).catch(() => {
+                    fallbackCopyToClipboard(code);
+                });
+            } else {
+                fallbackCopyToClipboard(code);
+            }
+        }
+
+        function fallbackCopyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.top = '-999999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+
+            try {
+                document.execCommand('copy');
+                alert(`${collectedCoordinates.length}개 노드 코드가 클립보드에 복사되었습니다!`);
+            } catch (err) {
+                console.error('클립보드 복사 실패:', err);
+                alert('클립보드 복사에 실패했습니다. 브라우저 콘솔에서 코드를 확인하세요.');
+                console.log('생성된 노드 코드:\n', text);
+            }
+
+            document.body.removeChild(textarea);
+        }
+
+        function generateNodes() {
+            if (collectedCoordinates.length === 0) {
+                alert('수집된 좌표가 없습니다.');
+                return;
+            }
+
+            if (confirm(`${collectedCoordinates.length}개의 노드를 생성하시겠습니까? 기존 노드는 모두 삭제됩니다.`)) {
+                // 기존 노드 제거
+                nodes.length = 0;
+
+                // 새 노드 생성
+                collectedCoordinates.forEach(coord => {
+                    nodes.push(new SkillNode(coord.x, coord.y, coord.id, coord.type, 1));
+                });
+
+                // 연결 설정 초기화
+                setupConnections();
+
+                // 좌표 수집 모드 종료
+                coordinateMode = false;
+                document.getElementById('coordinatePanel').style.display = 'none';
+                document.getElementById('modeStatus').textContent = '비활성';
+                document.getElementById('modeStatus').style.color = '#ff6666';
+                canvas.style.cursor = 'grab';
+            }
+        }
+
+        function loadImage() {
+            document.getElementById('imageInput').click();
+        }
+
+        function handleImageLoad(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        backgroundImage = img;
+                        imageLoaded = true;
+
+                        // 이미지 크기에 맞게 카메라 조정
+                        camera.x = 0;
+                        camera.y = 0;
+                        camera.zoom = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
+
+                        alert('이미지가 로드되었습니다! 좌표 수집 모드를 활성화하여 노드 위치를 클릭하세요.');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // UI 함수들
+        function updatePoints() {
+            const input = document.getElementById('pointsInput');
+            const newTotal = parseInt(input.value) || 0;
+            const difference = newTotal - (availablePoints + usedPoints);
+            availablePoints += difference;
+            updateUI();
+        }
+
+        function addPoints(amount) {
+            availablePoints += amount;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('pointsInput').value = availablePoints + usedPoints;
+            document.getElementById('usedPoints').textContent = usedPoints;
+            document.getElementById('totalPoints').textContent = availablePoints + usedPoints;
+        }
+
+        function resetSkillTree() {
+            if (confirm('정말로 모든 스킬을 리셋하시겠습니까?')) {
+                nodes.forEach(node => {
+                    node.currentLevel = 0;
+                });
+                availablePoints = availablePoints + usedPoints;
+                usedPoints = 0;
+                updateUI();
+                saveToLocalStorage();
+            }
+        }
+
+        function fullSize() {
+            const skillTreeWrapper = document.querySelector('.skill-tree-wrapper');
+
+            if (skillTreeWrapper) {
+                // 주석된 CSS 스타일들을 적용
+                skillTreeWrapper.style.position = 'fixed';
+                skillTreeWrapper.style.top = '0';
+                skillTreeWrapper.style.left = '0';
+                skillTreeWrapper.style.width = '100vw';
+                skillTreeWrapper.style.height = '100vh';
+                skillTreeWrapper.style.zIndex = '9999';
+
+                // 기존 스타일 유지
+                skillTreeWrapper.style.margin = '0';
+                skillTreeWrapper.style.padding = '0';
+                skillTreeWrapper.style.background = 'radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f0f 70%, #000000 100%)';
+                skillTreeWrapper.style.fontFamily = "'Courier New', monospace";
+                skillTreeWrapper.style.overflow = 'hidden';
+                skillTreeWrapper.style.color = '#ffffff';
+            }
+        }
+
+        // 저장/불러오기
+        function saveToLocalStorage() {
+            const saveData = {
+                nodes: nodes.map(node => ({
+                    id: node.id,
+                    currentLevel: node.currentLevel
+                })),
+                availablePoints: availablePoints,
+                usedPoints: usedPoints,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('skillTreeSave', JSON.stringify(saveData));
+        }
+
+        function loadFromLocalStorage() {
+            const saveData = localStorage.getItem('skillTreeSave');
+            if (saveData) {
+                try {
+                    const data = JSON.parse(saveData);
+
+                    data.nodes.forEach(savedNode => {
+                        const node = nodes.find(n => n.id === savedNode.id);
+                        if (node) {
+                            node.currentLevel = savedNode.currentLevel || 0;
+                        }
+                    });
+
+                    availablePoints = data.availablePoints || 0;
+                    usedPoints = data.usedPoints || 0;
+                    updateUI();
+                } catch (e) {
+                    console.error('저장 데이터 로드 실패:', e);
+                }
+            }
+        }
+
+        function saveToFile() {
+            const saveData = {
+                nodes: nodes.map(node => ({
+                    id: node.id,
+                    currentLevel: node.currentLevel
+                })),
+                availablePoints: availablePoints,
+                usedPoints: usedPoints,
+                timestamp: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `skilltree_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function loadFromFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileLoad(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+
+                        if (confirm('현재 진행상황이 삭제됩니다. 계속하시겠습니까?')) {
+                            nodes.forEach(node => node.currentLevel = 0);
+
+                            data.nodes.forEach(savedNode => {
+                                const node = nodes.find(n => n.id === savedNode.id);
+                                if (node) {
+                                    node.currentLevel = savedNode.currentLevel || 0;
+                                }
+                            });
+
+                            availablePoints = data.availablePoints || 0;
+                            usedPoints = data.usedPoints || 0;
+                            updateUI();
+                            saveToLocalStorage();
+
+                            alert('파일을 성공적으로 불러왔습니다!');
+                        }
+                    } catch (error) {
+                        alert('파일 형식이 올바르지 않습니다.');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // 렌더링
+        function render() {
+            handleKeyboardMovement();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 배경 이미지 그리기
+            if (imageLoaded && backgroundImage) {
+                const imgX = (camera.x * camera.zoom) + canvas.width / 2 - (backgroundImage.width * camera.zoom) / 2;
+                const imgY = (camera.y * camera.zoom) + canvas.height / 2 - (backgroundImage.height * camera.zoom) / 2;
+                const imgWidth = backgroundImage.width * camera.zoom;
+                const imgHeight = backgroundImage.height * camera.zoom;
+
+                ctx.drawImage(backgroundImage, imgX, imgY, imgWidth, imgHeight);
+            }
+
+            // 좌표 수집 모드가 아니고 연결 모드가 아닐 때만 노드와 연결선 그리기
+            if (!coordinateMode && !connectionMode) {
+                // 연결선 그리기
+                nodes.forEach(node => {
+                    node.connections.forEach(connId => {
+                        const connectedNode = nodes.find(n => n.id === connId);
+                        if (connectedNode) {
+                            drawConnection(node, connectedNode);
+                        }
+                    });
+                });
+
+                // 노드 그리기
+                nodes.forEach(node => node.draw());
+                updateNodeOverlayPositions();
+            }
+
+            // 연결 모드에서 노드와 선택된 노드 표시
+            if (connectionMode) {
+                // 연결선 그리기
+                nodes.forEach(node => {
+                    node.connections.forEach(connId => {
+                        const connectedNode = nodes.find(n => n.id === connId);
+                        if (connectedNode) {
+                            drawConnection(node, connectedNode);
+                        }
+                    });
+                });
+
+                // 노드 그리기 (선택된 노드는 하이라이트)
+                nodes.forEach(node => {
+                    if (node === selectedNode) {
+                        // 선택된 노드 하이라이트
+                        const pos = node.getScreenPosition();
+                        const scaledRadius = node.radius * camera.zoom;
+
+                        ctx.save();
+                        ctx.shadowColor = '#ffaa00';
+                        ctx.shadowBlur = 20;
+                        ctx.strokeStyle = '#ffaa00';
+                        ctx.lineWidth = 4;
+                        ctx.beginPath();
+
+                        if (node.type === 'keystone') {
+                            ctx.arc(pos.x, pos.y, scaledRadius + 5, 0, Math.PI * 2);
+                        } else {
+                            for (let i = 0; i < 6; i++) {
+                                const angle = (Math.PI / 3) * i;
+                                const x = pos.x + Math.cos(angle) * (scaledRadius + 5);
+                                const y = pos.y + Math.sin(angle) * (scaledRadius + 5);
+                                if (i === 0) {
+                                    ctx.moveTo(x, y);
+                                } else {
+                                    ctx.lineTo(x, y);
+                                }
+                            }
+                            ctx.closePath();
+                        }
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                    node.draw();
+                });
+
+                // 연결 모드 안내 텍스트
+                ctx.fillStyle = '#00ffff';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                if (selectedNode) {
+                    ctx.fillText(`${selectedNode.id} 선택됨 - 연결할 노드를 클릭하세요`, canvas.width / 2, 50);
+                } else {
+                    ctx.fillText('연결 모드 - 첫 번째 노드를 클릭하세요', canvas.width / 2, 50);
+                }
+            }
+
+            // 좌표 수집 모드에서 수집된 점들 표시
+            if (coordinateMode) {
+                collectedCoordinates.forEach((coord, index) => {
+                    const screenPos = {
+                        x: (coord.x + camera.x) * camera.zoom + canvas.width / 2,
+                        y: (coord.y + camera.y) * camera.zoom + canvas.height / 2
+                    };
+
+                    let radius, color;
+                    switch (coord.type) {
+                        case 'small': radius = 8; color = '#00aaff'; break;
+                        case 'notable': radius = 14; color = '#ffaa00'; break;
+                        case 'keystone': radius = 22; color = '#ff6666'; break;
+                    }
+
+                    ctx.save();
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 8;
+                    ctx.strokeStyle = color;
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(screenPos.x, screenPos.y, radius * camera.zoom, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // 번호 표시
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `${12 * camera.zoom}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText((index + 1).toString(), screenPos.x, screenPos.y);
+
+                    ctx.restore();
+                });
+
+                // 좌표 수집 모드 안내 텍스트
+                ctx.fillStyle = '#00ffff';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('좌표 수집 모드 - 노드 위치를 클릭하세요', canvas.width / 2, 50);
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        // 연결 모드 기능들
+        function toggleConnectionMode() {
+            connectionMode = !connectionMode;
+            const panel = document.getElementById('connectionPanel');
+            const status = document.getElementById('connectionStatus');
+
+            if (connectionMode) {
+                // 다른 모드들 비활성화
+                if (coordinateMode) {
+                    coordinateMode = false;
+                    document.getElementById('coordinatePanel').style.display = 'none';
+                }
+
+                panel.style.display = 'block';
+                status.textContent = '활성 (노드를 클릭하여 연결)';
+                status.style.color = '#00ff88';
+                canvas.style.cursor = 'pointer';
+                selectedNode = null;
+                updateConnectionDisplay();
+            } else {
+                panel.style.display = 'none';
+                status.textContent = '비활성';
+                status.style.color = '#ff6666';
+                canvas.style.cursor = 'grab';
+                selectedNode = null;
+            }
+        }
+
+        function handleConnectionClick(screenX, screenY) {
+            const clickedNode = nodes.find(node => node.isPointInside(screenX, screenY));
+
+            if (!clickedNode) return;
+
+            if (!selectedNode) {
+                // 첫 번째 노드 선택
+                selectedNode = clickedNode;
+                document.getElementById('selectedNode').textContent = clickedNode.id;
+                document.getElementById('selectedNode').style.color = '#ffaa00';
+            } else if (selectedNode === clickedNode) {
+                // 같은 노드 클릭 시 선택 해제
+                selectedNode = null;
+                document.getElementById('selectedNode').textContent = '없음';
+                document.getElementById('selectedNode').style.color = '#00ff88';
+            } else {
+                // 두 번째 노드 선택 - 연결 생성
+                createConnection(selectedNode, clickedNode);
+                selectedNode = null;
+                document.getElementById('selectedNode').textContent = '없음';
+                document.getElementById('selectedNode').style.color = '#00ff88';
+            }
+        }
+
+        function createConnection(fromNode, toNode) {
+            const bidirectional = document.getElementById('bidirectionalCheck').checked;
+
+            // 이미 연결되어 있는지 확인
+            const existingConnection = allConnections.find(conn =>
+                (conn.from === fromNode.id && conn.to === toNode.id) ||
+                (conn.to === fromNode.id && conn.from === toNode.id)
+            );
+
+            if (existingConnection) {
+                alert('이미 연결된 노드입니다.');
+                return;
+            }
+
+            // 실제 노드에 연결 추가
+            fromNode.addConnection(toNode.id);
+            toNode.addPrerequisite(fromNode.id);
+
+            // 연결 기록
+            const connection = {
+                from: fromNode.id,
+                to: toNode.id,
+                bidirectional: bidirectional
+            };
+            allConnections.push(connection);
+
+            if (bidirectional) {
+                // 양방향 연결
+                toNode.addConnection(fromNode.id);
+                fromNode.addPrerequisite(toNode.id);
+            }
+
+            updateConnectionDisplay();
+        }
+
+        function updateConnectionDisplay() {
+            document.getElementById('connectionCount').textContent = allConnections.length;
+
+            const list = document.getElementById('connectionList');
+            list.innerHTML = allConnections.map((conn, index) =>
+                `<div style="margin: 2px 0; color: #cccccc;">
+                    ${index + 1}. ${conn.from} → ${conn.to} ${conn.bidirectional ? '(양방향)' : ''}
+                    <button onclick="removeConnection(${index})" style="margin-left: 5px; padding: 1px 5px; font-size: 10px; background: #ff4444; border: none; color: white; border-radius: 2px; cursor: pointer;">✖</button>
+                </div>`
+            ).join('');
+        }
+
+        function removeConnection(index) {
+            const conn = allConnections[index];
+
+            // 실제 노드에서 연결 제거
+            const fromNode = nodes.find(n => n.id === conn.from);
+            const toNode = nodes.find(n => n.id === conn.to);
+
+            if (fromNode && toNode) {
+                // 연결과 전제조건 제거
+                fromNode.connections = fromNode.connections.filter(id => id !== conn.to);
+                toNode.prerequisites = toNode.prerequisites.filter(id => id !== conn.from);
+
+                if (conn.bidirectional) {
+                    toNode.connections = toNode.connections.filter(id => id !== conn.from);
+                    fromNode.prerequisites = fromNode.prerequisites.filter(id => id !== conn.to);
+                }
+            }
+
+            // 연결 기록에서 제거
+            allConnections.splice(index, 1);
+            updateConnectionDisplay();
+        }
+
+        function clearAllConnections() {
+            if (confirm('모든 연결을 삭제하시겠습니까?')) {
+                // 모든 노드의 연결과 전제조건 초기화
+                nodes.forEach(node => {
+                    node.connections = [];
+                    node.prerequisites = [];
+                });
+
+                allConnections = [];
+                updateConnectionDisplay();
+                alert('모든 연결이 삭제되었습니다.');
+            }
+        }
+
+        function exportConnections() {
+            if (allConnections.length === 0) {
+                alert('생성된 연결이 없습니다.');
+                return;
+            }
+
+            let code = 'function setupConnections() {\n';
+
+            allConnections.forEach(conn => {
+                code += `    nodes.find(n => n.id === '${conn.from}').addConnection('${conn.to}');\n`;
+                code += `    nodes.find(n => n.id === '${conn.to}').addPrerequisite('${conn.from}');\n`;
+
+                if (conn.bidirectional) {
+                    code += `    nodes.find(n => n.id === '${conn.to}').addConnection('${conn.from}');\n`;
+                    code += `    nodes.find(n => n.id === '${conn.from}').addPrerequisite('${conn.to}');\n`;
+                }
+                code += '\n';
+            });
+
+            code += '}';
+
+            // 클립보드 복사
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert(`${allConnections.length}개 연결 코드가 클립보드에 복사되었습니다!`);
+                }).catch(() => {
+                    fallbackCopyToClipboard(code);
+                });
+            } else {
+                fallbackCopyToClipboard(code);
+            }
+        }
+
+
+        // 좌표 수집 기능들
+        function toggleCoordinateMode() {
+            coordinateMode = !coordinateMode;
+            const panel = document.getElementById('coordinatePanel');
+            const status = document.getElementById('modeStatus');
+
+            if (coordinateMode) {
+                panel.style.display = 'block';
+                status.textContent = '활성 (클릭하여 좌표 수집)';
+                status.style.color = '#00ff88';
+                canvas.style.cursor = 'crosshair';
+            } else {
+                panel.style.display = 'none';
+                status.textContent = '비활성';
+                status.style.color = '#ff6666';
+                canvas.style.cursor = 'grab';
+            }
+        }
+
+        // 연결 모드 기능들
+        function toggleConnectionMode() {
+            connectionMode = !connectionMode;
+            const panel = document.getElementById('connectionPanel');
+            const status = document.getElementById('connectionStatus');
+
+            if (connectionMode) {
+                // 다른 모드들 비활성화
+                if (coordinateMode) {
+                    coordinateMode = false;
+                    document.getElementById('coordinatePanel').style.display = 'none';
+                }
+
+                panel.style.display = 'block';
+                status.textContent = '활성 (노드를 클릭하여 연결)';
+                status.style.color = '#00ff88';
+                canvas.style.cursor = 'pointer';
+                selectedNode = null;
+                updateConnectionDisplay();
+            } else {
+                panel.style.display = 'none';
+                status.textContent = '비활성';
+                status.style.color = '#ff6666';
+                canvas.style.cursor = 'grab';
+                selectedNode = null;
+            }
+        }
+
+        function handleConnectionClick(screenX, screenY) {
+            const clickedNode = nodes.find(node => node.isPointInside(screenX, screenY));
+
+            if (!clickedNode) return;
+
+            if (!selectedNode) {
+                // 첫 번째 노드 선택
+                selectedNode = clickedNode;
+                document.getElementById('selectedNode').textContent = clickedNode.id;
+                document.getElementById('selectedNode').style.color = '#ffaa00';
+            } else if (selectedNode === clickedNode) {
+                // 같은 노드 클릭 시 선택 해제
+                selectedNode = null;
+                document.getElementById('selectedNode').textContent = '없음';
+                document.getElementById('selectedNode').style.color = '#00ff88';
+            } else {
+                // 두 번째 노드 선택 - 연결 생성
+                createConnection(selectedNode, clickedNode);
+                selectedNode = null;
+                document.getElementById('selectedNode').textContent = '없음';
+                document.getElementById('selectedNode').style.color = '#00ff88';
+            }
+        }
+
+        function createConnection(fromNode, toNode) {
+            const bidirectional = document.getElementById('bidirectionalCheck').checked;
+
+            // 이미 연결되어 있는지 확인
+            const existingConnection = allConnections.find(conn =>
+                (conn.from === fromNode.id && conn.to === toNode.id) ||
+                (conn.to === fromNode.id && conn.from === toNode.id)
+            );
+
+            if (existingConnection) {
+                alert('이미 연결된 노드입니다.');
+                return;
+            }
+
+            // 실제 노드에 연결 추가
+            fromNode.addConnection(toNode.id);
+            toNode.addPrerequisite(fromNode.id);
+
+            // 연결 기록
+            const connection = {
+                from: fromNode.id,
+                to: toNode.id,
+                bidirectional: bidirectional
+            };
+            allConnections.push(connection);
+
+            if (bidirectional) {
+                // 양방향 연결
+                toNode.addConnection(fromNode.id);
+                fromNode.addPrerequisite(toNode.id);
+            }
+
+            updateConnectionDisplay();
+        }
+
+        function updateConnectionDisplay() {
+            document.getElementById('connectionCount').textContent = allConnections.length;
+
+            const list = document.getElementById('connectionList');
+            list.innerHTML = allConnections.map((conn, index) =>
+                `<div style="margin: 2px 0; color: #cccccc;">
+            ${index + 1}. ${conn.from} → ${conn.to} ${conn.bidirectional ? '(양방향)' : ''}
+            <button onclick="removeConnection(${index})" style="margin-left: 5px; padding: 1px 5px; font-size: 10px; background: #ff4444; border: none; color: white; border-radius: 2px; cursor: pointer;">✖</button>
+        </div>`
+            ).join('');
+        }
+
+        function removeConnection(index) {
+            const conn = allConnections[index];
+
+            // 실제 노드에서 연결 제거
+            const fromNode = nodes.find(n => n.id === conn.from);
+            const toNode = nodes.find(n => n.id === conn.to);
+
+            if (fromNode && toNode) {
+                // 연결과 전제조건 제거
+                fromNode.connections = fromNode.connections.filter(id => id !== conn.to);
+                toNode.prerequisites = toNode.prerequisites.filter(id => id !== conn.from);
+
+                if (conn.bidirectional) {
+                    toNode.connections = toNode.connections.filter(id => id !== conn.from);
+                    fromNode.prerequisites = fromNode.prerequisites.filter(id => id !== conn.to);
+                }
+            }
+
+            // 연결 기록에서 제거
+            allConnections.splice(index, 1);
+            updateConnectionDisplay();
+        }
+
+        function clearAllConnections() {
+            if (confirm('모든 연결을 삭제하시겠습니까?')) {
+                // 모든 노드의 연결과 전제조건 초기화
+                nodes.forEach(node => {
+                    node.connections = [];
+                    node.prerequisites = [];
+                });
+
+                allConnections = [];
+                updateConnectionDisplay();
+                alert('모든 연결이 삭제되었습니다.');
+            }
+        }
+
+        function exportConnections() {
+            if (allConnections.length === 0) {
+                alert('생성된 연결이 없습니다.');
+                return;
+            }
+
+            let code = 'function setupConnections() {\n';
+
+            allConnections.forEach(conn => {
+                code += `    nodes.find(n => n.id === '${conn.from}').addConnection('${conn.to}');\n`;
+                code += `    nodes.find(n => n.id === '${conn.to}').addPrerequisite('${conn.from}');\n`;
+
+                if (conn.bidirectional) {
+                    code += `    nodes.find(n => n.id === '${conn.to}').addConnection('${conn.from}');\n`;
+                    code += `    nodes.find(n => n.id === '${conn.from}').addPrerequisite('${conn.to}');\n`;
+                }
+                code += '\n';
+            });
+
+            code += '}';
+
+            // 클립보드 복사
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert(`${allConnections.length}개 연결 코드가 클립보드에 복사되었습니다!`);
+                }).catch(() => {
+                    fallbackCopyToClipboard(code);
+                });
+            } else {
+                fallbackCopyToClipboard(code);
+            }
+        }
+
+        // 선행 노드들을 색칠하는 함수
+        function colorPrerequisites(hoveredNode, nodes) {
+            if (hoveredNode?.prerequisites) {
+                console.log('nodes', nodes, hoveredNode.prerequisites);
+
+                // 1. hoveredNode.prerequisites에서 선행 노드 ID들을 가져옴
+                const prerequisiteIds = hoveredNode.prerequisites;
+
+                // 2. nodes 배열에서 해당 ID를 가진 노드들을 찾음
+                prerequisiteIds.forEach(prereqId => {
+                    // nodes 배열에서 id가 일치하는 노드 찾기
+                    const prereqNode = nodes.find(node => node.id === prereqId);
+
+                    if (prereqNode) {
+                        console.log('찾은 선행 노드:', prereqNode);
+
+                        // 3. DOM에서 해당 노드 요소 찾기 (data-node-id 속성 사용)
+                        const nodeElement = document.querySelector(`[data-node-id="${prereqId}"]`);
+
+                        if (nodeElement) {
+                            // 4. 색칠하기 (빨간 테두리 추가)
+                            nodeElement.classList.add('prerequisite-highlighted');
+                        }
+                    }
+                });
+            }
+        }
+        function createNodeOverlays() {
+    // 기존 오버레이 제거
+    document.querySelectorAll('.node-overlay').forEach(el => el.remove());
+
+    const skillTreeWrapper = document.querySelector('.skill-tree-wrapper');
+
+    nodes.forEach(node => {
+        const overlay = document.createElement('div');
+        overlay.setAttribute('data-node-id', node.id);
+        overlay.className = 'node-overlay';
+        overlay.style.cssText = `
+            position: absolute;
+            pointer-events: ${isDragging ? 'none' : 'auto'};
+            background: transparent;
+            border-radius: 50%;
+            z-index: 10;
+            transition: all 0.3s ease;
+        `;
+
+        // ✅ 마우스 이벤트 완전 수정
+        overlay.addEventListener('mouseenter', (e) => {
+            // 드래그 중이면 아무것도 안함
+            if (isDragging) return;
+            
+            e.stopPropagation();
+            
+            // ✅ 툴팁 설정 (빠져있던 부분)
+            hoveredNode = node;
+            updateTooltip(e);
+            
+            // 선행 노드 하이라이트
+            if (node?.prerequisites && node.prerequisites.length > 0) {
+                handleNodeHover(node, nodes);
+            }
+        });
+
+        overlay.addEventListener('mousemove', (e) => {
+            // 드래그 중이면 아무것도 안함
+            if (isDragging) return;
+            
+            e.stopPropagation();
+            
+            // ✅ 툴팁 위치 업데이트 (빠져있던 부분)
+            if (hoveredNode && tooltipElement && tooltipElement.style.display === 'block') {
+                tooltipElement.style.left = (e.clientX + 10) + 'px';
+                tooltipElement.style.top = (e.clientY - 10) + 'px';
+            }
+        });
+
+        overlay.addEventListener('mouseleave', (e) => {
+            // 드래그 중이면 아무것도 안함
+            if (isDragging) return;
+            
+            e.stopPropagation();
+            
+            // ✅ 툴팁 제거 (빠져있던 부분)
+            hoveredNode = null;
+            updateTooltip();
+            
+            // 선행 노드 하이라이트 제거
+            handleNodeLeave();
+        });
+
+        // 클릭 이벤트 (기존과 동일하지만 stopPropagation 추가)
+        overlay.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            
+            if (e.button === 2 || (e.shiftKey && node.currentLevel > 0)) {
+                // 우클릭 또는 Shift+클릭으로 비활성화
+                if (node.deactivate()) {
+                    // 비활성화 성공
+                } else {
+                    alert('다른 노드가 이 노드에 의존하므로 비활성화할 수 없습니다.');
+                }
+            } else if (e.button === 0) {
+                // 좌클릭으로 활성화
+                node.activate();
+            }
+            e.preventDefault();
+        });
+
+        overlay.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        skillTreeWrapper.appendChild(overlay);
+    });
+}
+
+        // 2. 오버레이 위치 업데이트 함수
+        function updateNodeOverlayPositions() {
+            nodes.forEach(node => {
+                const overlay = document.querySelector(`[data-node-id="${node.id}"]`);
+                if (overlay) {
+                    const pos = node.getScreenPosition();
+                    const scaledRadius = node.radius * camera.zoom;
+
+                    overlay.style.left = (pos.x - scaledRadius) + 'px';
+                    overlay.style.top = (pos.y - scaledRadius) + 'px';
+                    overlay.style.width = (scaledRadius * 2) + 'px';
+                    overlay.style.height = (scaledRadius * 2) + 'px';
+                }
+            });
+        }
+        // 모든 색칠 제거하는 함수
+        function clearPrerequisiteColors() {
+            document.querySelectorAll('.prerequisite-highlighted').forEach(element => {
+                element.classList.remove('prerequisite-highlighted');
+            });
+        }
+        function addPrerequisiteColorStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+        .prerequisite-highlighted {
+            border: 3px solid #ff0000 !important;
+            background-color: rgba(255, 0, 0, 0.2) !important;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            transition: all 0.3s ease;
+        }
+    `;
+            document.head.appendChild(style);
+        }
+
+        // 사용 예시
+        function handleNodeHover(hoveredNode, nodes) {
+            // 기존 색칠 제거
+            clearPrerequisiteColors();
+
+            // 새로운 선행 노드들 색칠
+            colorPrerequisites(hoveredNode, nodes);
+        }
+
+        function handleNodeLeave() {
+            // 마우스가 떠났을 때 모든 색칠 제거
+            clearPrerequisiteColors();
+        }
+
+        // 초기화 (CSS 스타일 추가)
+        addPrerequisiteColorStyles();
+        // 초기화
+        loadFromLocalStorage();
+        updateUI();
+
+        createNodeOverlays();
+
+        render();
+
+        window.addEventListener('beforeunload', saveToLocalStorage);
+    </script>
+</div>
+
+</html>
