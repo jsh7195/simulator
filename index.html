@@ -192,14 +192,14 @@
         <!-- <button onclick="toggleCoordinateMode()">📍 좌표 수집 모드</button>
         <button onclick="toggleConnectionMode()">🔗 연결 모드</button> -->
         <button onclick="resetSkillTree()">🔄 리셋</button>
-        <!-- <button onclick="saveToFile()">💾 저장</button>
-        <button onclick="loadFromFile()">📁 불러오기</button> -->
+        <button onclick="saveToFile()">💾 저장</button>
+        <button onclick="loadFromFile()">📁 불러오기</button>
         <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileLoad(event)">
         <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageLoad(event)">
         <!-- <button onclick="loadImage()">🖼️ 이미지 불러오기</button> -->
     </div>
 
-    <div class="ui-panel points-panel">
+    <div id="root-point-panel" class="ui-panel points-panel">
         <div style="color: #ffaa00; font-weight: bold; margin-bottom: 10px;">💎 포인트</div>
         <div class="input-group">
             <label>사용 가능:</label>
@@ -503,7 +503,24 @@
                     ctx.textBaseline = 'middle';
                     ctx.fillText(`${this.currentLevel}/${this.maxLevel}`, pos.x, pos.y); // 레벨정보
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(`${this.name}`, pos.x, pos.y - 30); // id정보
+
+                    let defaultHeight = 50;
+                    switch (this.type) {
+                        case "small":
+                            
+                            break;
+                        case "notable":
+                            defaultHeight = 55
+                            break;
+                                case "keystone":
+                            defaultHeight = 90
+                            break;
+                        default:
+                            defaultHeight = 50;
+                            break;
+                    }
+
+                    ctx.fillText(`${this.name}`, pos.x, pos.y + (defaultHeight * camera.zoom)); // id정보
                 }
             }
         }
@@ -558,7 +575,7 @@
         nodes.push(new SkillNode(-803, -271, 'node_2', 'notable', 1, [], '점화'));
         nodes.push(new SkillNode(-554, -406, 'node_3', 'notable', 1, [], '방어막 파괴'));
         nodes.push(new SkillNode(-709, 15, 'node_4', 'notable', 1, [], '무효화'));
-        nodes.push(new SkillNode(-552, -165, 'node_5', 'keystone', 5));
+        nodes.push(new SkillNode(-552, -165, 'node_5', 'keystone', 5,[], 'HP'));
         nodes.push(new SkillNode(-381, -310, 'node_6', 'small', 5));
         nodes.push(new SkillNode(-328, -184, 'node_7', 'small', 5));
         nodes.push(new SkillNode(-343, -448, 'node_8', 'notable', 1));
@@ -567,22 +584,22 @@
         nodes.push(new SkillNode(-145, -149, 'node_11', 'notable', 1, [], '신의방패'));
         nodes.push(new SkillNode(-62, -401, 'node_12', 'notable', 1, [], '카데나'));
         nodes.push(new SkillNode(193, -372, 'node_13', 'notable', 1, [], '공격오라'));
-        nodes.push(new SkillNode(38, -669, 'node_14', 'notable', 1));
-        nodes.push(new SkillNode(154, -594, 'node_15', 'notable', 3));
-        nodes.push(new SkillNode(31, -831, 'node_16', 'notable', 1));
-        nodes.push(new SkillNode(273, -829, 'node_17', 'notable', 1));
-        nodes.push(new SkillNode(395, -742, 'node_18', 'notable', 1));
+        nodes.push(new SkillNode(38, -669, 'node_14', 'notable', 1, [], '자가회복광역1'));
+        nodes.push(new SkillNode(154, -594, 'node_15', 'notable', 3,[],'헌신특화'));
+        nodes.push(new SkillNode(31, -831, 'node_16', 'notable', 1,[],'자가회복강화1'));
+        nodes.push(new SkillNode(273, -829, 'node_17', 'notable', 1,[],'자가회복강화2'));
+        nodes.push(new SkillNode(395, -742, 'node_18', 'notable', 1,[],'자가회복광역2'));
         nodes.push(new SkillNode(591, -230, 'node_19', 'notable', 1, [], '참회의 도끼'));
         nodes.push(new SkillNode(296, 85, 'node_20', 'notable', 1, [], '징벌의 도약'));
-        nodes.push(new SkillNode(179, 132, 'node_21', 'notable', 3, [], '수호특성'));
+        nodes.push(new SkillNode(179, 132, 'node_21', 'notable', 3, [], '수호특화'));
         nodes.push(new SkillNode(128, -179, 'node_22', 'notable', 1, [], '사슬속박'));
-        nodes.push(new SkillNode(-137, 238, 'node_23', 'notable', 1));
-        nodes.push(new SkillNode(-490, 331, 'node_24', 'notable', 1));
-        nodes.push(new SkillNode(-234, 558, 'node_25', 'notable', 1));
-        nodes.push(new SkillNode(-14, 513, 'node_26', 'notable', 1));
-        nodes.push(new SkillNode(716, 52, 'node_27', 'keystone', 3));
-        nodes.push(new SkillNode(489, -944, 'node_28', 'keystone', 5));
-        nodes.push(new SkillNode(3, 698, 'node_29', 'keystone', 5));
+        nodes.push(new SkillNode(-137, 238, 'node_23', 'notable', 1, [], '돌진방어1'));
+        nodes.push(new SkillNode(-490, 331, 'node_24', 'notable', 1, [], '돌진공격1'));
+        nodes.push(new SkillNode(-234, 558, 'node_25', 'notable', 1, [], '돌진공격2'));
+        nodes.push(new SkillNode(-14, 513, 'node_26', 'notable', 1, [], '돌진방어2'));
+        nodes.push(new SkillNode(716, 52, 'node_27', 'keystone', 3, [], '심판특화'));
+        nodes.push(new SkillNode(489, -944, 'node_28', 'keystone', 5,[],'회복증폭'));
+        nodes.push(new SkillNode(3, 698, 'node_29', 'keystone', 5, [], '상적'));
         nodes.push(new SkillNode(-318, 264, 'node_30', 'small', 5));
         nodes.push(new SkillNode(-234, 127, 'node_31', 'small', 5));
         nodes.push(new SkillNode(-44, 69, 'node_32', 'small', 5));
@@ -868,7 +885,6 @@
             createTooltip();
 
             if (hoveredNode && event) {
-                console.log('hoveredNode : ', hoveredNode)
                 const nodeTypeText = hoveredNode.type.charAt(0).toUpperCase() + hoveredNode.type.slice(1);
                 const levelText = `${hoveredNode.currentLevel}/${hoveredNode.maxLevel}`;
                 const name = hoveredNode.name ?? ''
@@ -1146,9 +1162,16 @@
         }
 
         function updateUI() {
+
             document.getElementById('pointsInput').value = availablePoints + usedPoints;
             document.getElementById('usedPoints').textContent = usedPoints;
             document.getElementById('totalPoints').textContent = availablePoints + usedPoints;
+
+            if (usedPoints > availablePoints + usedPoints) {
+                document.getElementById('root-point-panel').style = "background-color:red";
+            } else {
+                document.getElementById('root-point-panel').style = "";
+            }
         }
 
         function resetSkillTree() {
@@ -1776,7 +1799,6 @@
         // 선행 노드들을 색칠하는 함수
         function colorPrerequisites(hoveredNode, nodes) {
             if (hoveredNode?.prerequisites) {
-                console.log('nodes', nodes, hoveredNode.prerequisites);
 
                 // 1. hoveredNode.prerequisites에서 선행 노드 ID들을 가져옴
                 const prerequisiteIds = hoveredNode.prerequisites;
@@ -1787,8 +1809,6 @@
                     const prereqNode = nodes.find(node => node.id === prereqId);
 
                     if (prereqNode) {
-                        console.log('찾은 선행 노드:', prereqNode);
-
                         // 3. DOM에서 해당 노드 요소 찾기 (data-node-id 속성 사용)
                         const nodeElement = document.querySelector(`[data-node-id="${prereqId}"]`);
 
@@ -1936,6 +1956,20 @@
         function handleNodeLeave() {
             // 마우스가 떠났을 때 모든 색칠 제거
             clearPrerequisiteColors();
+        }
+
+        function calculateDday(targetDateStr) {
+            const today = new Date();
+            const targetDate = new Date(targetDateStr);
+
+            // 오늘 날짜에서 시간 제거 (00:00:00 기준)
+            today.setHours(0, 0, 0, 0);
+            targetDate.setHours(0, 0, 0, 0);
+
+            const diffTime = targetDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 하루는 86400000ms
+
+            return diffDays;
         }
 
         // 초기화 (CSS 스타일 추가)
