@@ -15,10 +15,11 @@
         body {
             margin: 0;
         }
+
         .skill-tree-wrapper {
-            position:'fixed';
-            top:0;
-            left:0;
+            position: 'fixed';
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
             background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f0f 70%, #000000 100%);
@@ -648,7 +649,7 @@
             nodes.find(n => n.id === 'node_33').addConnection('node_11');
             nodes.find(n => n.id === 'node_11').addPrerequisite('node_33');
             nodes.find(n => n.id === 'node_37').addConnection('node_11');
-             nodes.find(n => n.id === 'node_37').addPrerequisite('node_11');
+            nodes.find(n => n.id === 'node_37').addPrerequisite('node_11');
 
             nodes.find(n => n.id === 'node_31').addConnection('node_30');
             nodes.find(n => n.id === 'node_30').addPrerequisite('node_31');
