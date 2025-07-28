@@ -1288,7 +1288,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `skilltree_${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `스킬트리_${usedPoints+availablePoints}포인트_${new Date().toISOString().slice(0, 10)}.json`;
             a.click();
             URL.revokeObjectURL(url);
         }
