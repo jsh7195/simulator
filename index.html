@@ -12,10 +12,15 @@
     <!-- <og:description>프라시아 전기 집행관 전승 시뮬레이터</og:description> -->
     <style>
         /* 초기 블로그 영역에서 컨트롤 패널이 벗어나지 않도록 수정 */
-
-        .skill-tree-wrapper {
+        body {
             margin: 0;
-            padding: 0;
+        }
+        .skill-tree-wrapper {
+            position:'fixed';
+            top:0;
+            left:0;
+            width: 100vw;
+            height: 100vh;
             background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f0f 70%, #000000 100%);
             font-family: 'Courier New', monospace;
             overflow: hidden;
@@ -24,8 +29,8 @@
             position: relative;
 
             /* 최소 크기 보장 */
-            min-width: 320px;
-            min-height: 400px;
+            /* min-width: 320px;
+            min-height: 400px; */
         }
 
         .skill-tree-wrapper .ui-panel {
@@ -186,7 +191,6 @@
         <!-- <button onclick="toggleCoordinateMode()">📍 좌표 수집 모드</button>
         <button onclick="toggleConnectionMode()">🔗 연결 모드</button> -->
         <button onclick="resetSkillTree()">🔄 리셋</button>
-        <button onclick="fullSize()">크게보기</button>
         <!-- <button onclick="saveToFile()">💾 저장</button>
         <button onclick="loadFromFile()">📁 불러오기</button> -->
         <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileLoad(event)">
@@ -496,8 +500,9 @@
                     ctx.font = `${Math.min(30, scaledRadius * 5)}px Arial`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(`${this.currentLevel}/${this.maxLevel}`, pos.x, pos.y);
-                    ctx.fillText(`${this.name}`, pos.x, pos.y - 30);
+                    ctx.fillText(`${this.currentLevel}/${this.maxLevel}`, pos.x, pos.y); // 레벨정보
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(`${this.name}`, pos.x, pos.y - 30); // id정보
                 }
             }
         }
@@ -642,7 +647,8 @@
 
             nodes.find(n => n.id === 'node_33').addConnection('node_11');
             nodes.find(n => n.id === 'node_11').addPrerequisite('node_33');
-
+            nodes.find(n => n.id === 'node_37').addConnection('node_11');
+             nodes.find(n => n.id === 'node_37').addPrerequisite('node_11');
 
             nodes.find(n => n.id === 'node_31').addConnection('node_30');
             nodes.find(n => n.id === 'node_30').addPrerequisite('node_31');
@@ -668,8 +674,7 @@
             // nodes.find(n => n.id === 'node_37').addConnection('node_12');
             // nodes.find(n => n.id === 'node_12').addPrerequisite('node_37');
 
-            nodes.find(n => n.id === 'node_37').addConnection('node_11');
-            nodes.find(n => n.id === 'node_11').addPrerequisite('node_37');
+
 
 
             nodes.find(n => n.id === 'node_44').addConnection('node_25');
@@ -801,7 +806,7 @@
             font-size: 12px;
             font-family: 'Courier New', monospace;
             pointer-events: none;
-            z-index: 10000;
+            z-index: 100;
             display: none;
             white-space: nowrap;
             box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
@@ -869,6 +874,7 @@
                 tooltipElement.innerHTML = `
             <div style="color: #00aaff; font-weight: bold; font-size: 20px">${name}</div>
             <div style="color: #00ff88; font-size: 20px">레벨: ${levelText}</div>
+            <div style="color: #00ff88; font-size: 20px">레벨: ${hoveredNode.id}</div>
         `;
 
                 tooltipElement.style.display = 'block';
