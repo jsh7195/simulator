@@ -63,6 +63,15 @@
             max-width: calc(100% - 20px);
         }
 
+        .skill-tree-wrapper .info-panel {
+            top: 10px;
+            right: 10px;
+
+            /* 컨테이너 크기에 따라 자동 조정 */
+            width: auto;
+            max-width: calc(100% - 20px);
+        }
+
         .skill-tree-wrapper .points-panel {
             bottom: 10px;
             left: 10px;
@@ -188,7 +197,7 @@
 
 <div class="skill-tree-wrapper">
     <div class="ui-panel controls-panel">
-        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px;">🎮 컨트롤</div>
+        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px;">🎮 컨트롤 </div>
         <!-- <button onclick="toggleCoordinateMode()">📍 좌표 수집 모드</button>
         <button onclick="toggleConnectionMode()">🔗 연결 모드</button> -->
         <button onclick="resetSkillTree()">🔄 리셋</button>
@@ -199,12 +208,32 @@
         <!-- <button onclick="loadImage()">🖼️ 이미지 불러오기</button> -->
     </div>
 
+    <div class="ui-panel info-panel">
+        <div style="color: #00ffff; font-weight: bold; margin-bottom: 10px;">
+            <span id="dday"></span>
+            <br />
+            <br />
+            <span>
+                <a href="https://creators.nexon.com/kr/s/babyshark%235930?serviceId=37" target="_blank"
+                    rel="noopener noreferrer"
+                    style="display: inline-block; font-size: 20px; padding: 10px 20px; background: #4CAF50; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                    크리에이터 후원
+                </a>
+            </span>
+
+            <a href="https://discord.gg/aXfhstTyZY" target="_blank" rel="noopener noreferrer"
+                style="display: inline-block; font-size: 20px; padding: 10px 20px; background: #4CAF50; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                디스코드 문의
+            </a>
+            </span>
+        </div>
+    </div>
+
     <div id="root-point-panel" class="ui-panel points-panel">
         <div style="color: #ffaa00; font-weight: bold; margin-bottom: 10px;">💎 포인트</div>
         <div class="input-group">
             <label>사용 가능:</label>
             <input type="number" id="pointsInput" value="50" min="0" max="999" onchange="updatePoints()">
-            <button onclick="addPoints(10)">+10</button>
         </div>
         <div style="margin-top: 10px;">
             <div>사용됨: <span id="usedPoints" class="status-text">0</span></div>
@@ -507,12 +536,12 @@
                     let defaultHeight = 50;
                     switch (this.type) {
                         case "small":
-                            
+
                             break;
                         case "notable":
                             defaultHeight = 55
                             break;
-                                case "keystone":
+                        case "keystone":
                             defaultHeight = 90
                             break;
                         default:
@@ -575,7 +604,7 @@
         nodes.push(new SkillNode(-803, -271, 'node_2', 'notable', 1, [], '점화'));
         nodes.push(new SkillNode(-554, -406, 'node_3', 'notable', 1, [], '방어막 파괴'));
         nodes.push(new SkillNode(-709, 15, 'node_4', 'notable', 1, [], '무효화'));
-        nodes.push(new SkillNode(-552, -165, 'node_5', 'keystone', 5,[], 'HP'));
+        nodes.push(new SkillNode(-552, -165, 'node_5', 'keystone', 5, [], 'HP'));
         nodes.push(new SkillNode(-381, -310, 'node_6', 'small', 5));
         nodes.push(new SkillNode(-328, -184, 'node_7', 'small', 5));
         nodes.push(new SkillNode(-343, -448, 'node_8', 'notable', 1));
@@ -585,10 +614,10 @@
         nodes.push(new SkillNode(-62, -401, 'node_12', 'notable', 1, [], '카데나'));
         nodes.push(new SkillNode(193, -372, 'node_13', 'notable', 1, [], '공격오라'));
         nodes.push(new SkillNode(38, -669, 'node_14', 'notable', 1, [], '자가회복광역1'));
-        nodes.push(new SkillNode(154, -594, 'node_15', 'notable', 3,[],'헌신특화'));
-        nodes.push(new SkillNode(31, -831, 'node_16', 'notable', 1,[],'자가회복강화1'));
-        nodes.push(new SkillNode(273, -829, 'node_17', 'notable', 1,[],'자가회복강화2'));
-        nodes.push(new SkillNode(395, -742, 'node_18', 'notable', 1,[],'자가회복광역2'));
+        nodes.push(new SkillNode(154, -594, 'node_15', 'notable', 3, [], '헌신특화'));
+        nodes.push(new SkillNode(31, -831, 'node_16', 'notable', 1, [], '자가회복강화1'));
+        nodes.push(new SkillNode(273, -829, 'node_17', 'notable', 1, [], '자가회복강화2'));
+        nodes.push(new SkillNode(395, -742, 'node_18', 'notable', 1, [], '자가회복광역2'));
         nodes.push(new SkillNode(591, -230, 'node_19', 'notable', 1, [], '참회의 도끼'));
         nodes.push(new SkillNode(296, 85, 'node_20', 'notable', 1, [], '징벌의 도약'));
         nodes.push(new SkillNode(179, 132, 'node_21', 'notable', 3, [], '수호특화'));
@@ -598,7 +627,7 @@
         nodes.push(new SkillNode(-234, 558, 'node_25', 'notable', 1, [], '돌진공격2'));
         nodes.push(new SkillNode(-14, 513, 'node_26', 'notable', 1, [], '돌진방어2'));
         nodes.push(new SkillNode(716, 52, 'node_27', 'keystone', 3, [], '심판특화'));
-        nodes.push(new SkillNode(489, -944, 'node_28', 'keystone', 5,[],'회복증폭'));
+        nodes.push(new SkillNode(489, -944, 'node_28', 'keystone', 5, [], '회복증폭'));
         nodes.push(new SkillNode(3, 698, 'node_29', 'keystone', 5, [], '상적'));
         nodes.push(new SkillNode(-318, 264, 'node_30', 'small', 5));
         nodes.push(new SkillNode(-234, 127, 'node_31', 'small', 5));
@@ -1967,11 +1996,13 @@
             targetDate.setHours(0, 0, 0, 0);
 
             const diffTime = targetDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 하루는 86400000ms
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            return diffDays;
+            const ddayCmp = document.getElementById('dday');
+            ddayCmp.textContent = "전승시즌 D-" + diffDays;
+            ddayCmp.style.fontSize = '20px';
         }
-
+        calculateDday("2025-11-27")
         // 초기화 (CSS 스타일 추가)
         addPrerequisiteColorStyles();
         // 초기화
